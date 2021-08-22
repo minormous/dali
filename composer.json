@@ -21,6 +21,11 @@
             "Minormous\\Dali\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Dali\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Marisa",
