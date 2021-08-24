@@ -4,11 +4,14 @@ namespace Minormous\Dali;
 
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\AbstractDriver;
+use Minormous\Dali\Driver\ArrayDriver;
 use Minormous\Metabolize\Dali\MetadataReader;
 use Minormous\Dali\Repository\AbstractRepository;
 use Minormous\Dali\Entity\Interfaces\EntityInterface;
+use Minormous\Dali\Exceptions\InvalidDriverException;
 use Minormous\Dali\Exceptions\InvalidRepositoryException;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Webmozart\Assert\Assert;
 
 final class RepositoryManager
@@ -37,14 +40,24 @@ final class RepositoryManager
             throw InvalidRepositoryException::sourceDoesNotExist($source);
         }
         $config = $this->driverConfigs[$source];
-        $driverClass = $config->getDriverClass();
-        if (!array_key_exists($driverClass, $this->drivers)) {
-            $driver = new $driverClass($config, $this->logger);
-            Assert::isInstanceOf($driver, AbstractDriver::class);
-            $this->drivers[$driverClass] = $driver;
+        $driverType = $config->getDriverType();
+        if (!array_key_exists($driverType, $this->drivers)) {
+            switch ($driverType) {
+                case 'array':
+                    $this->drivers[$driverType] = new ArrayDriver($config, $this->logger);
+                    break;
+                default:
+                    if (!class_exists($driverType)) {
+                        throw InvalidDriverException::fromDriverType($driverType);
+                    }
+                    $driver = new $driverType($config, $this->logger);
+                    Assert::isInstanceOf($driver, AbstractDriver::class);
+                    $this->drivers[$driverType] = $driver;
+                    break;
+            }
         }
 
-        return $this->drivers[$driverClass];
+        return $this->drivers[$driverType];
     }
 
     /**
