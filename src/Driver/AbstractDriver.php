@@ -3,11 +3,11 @@
 namespace Minormous\Dali\Driver;
 
 use Psr\Log\LoggerInterface;
-use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Query\QueryBuilder;
 use IteratorAggregate;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Entity\Interfaces\EntityInterface;
+use Minormous\Dali\Driver\Interfaces\QueryResultInterface;
 
 abstract class AbstractDriver implements IteratorAggregate
 {
