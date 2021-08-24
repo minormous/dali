@@ -13,4 +13,9 @@ final class InvalidDriverException extends BaseException
     {
         return new static("Method [{$method}] not implemented for this driver: {$msg}", 500);
     }
+    
+    public static function sourceDoesNotExist(string $source): static
+    {
+        return new static("Source {$source} does not exist.", 500);
+    }
 }

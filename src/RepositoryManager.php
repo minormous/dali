@@ -9,9 +9,7 @@ use Minormous\Metabolize\Dali\MetadataReader;
 use Minormous\Dali\Repository\AbstractRepository;
 use Minormous\Dali\Entity\Interfaces\EntityInterface;
 use Minormous\Dali\Exceptions\InvalidDriverException;
-use Minormous\Dali\Exceptions\InvalidRepositoryException;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Webmozart\Assert\Assert;
 
 final class RepositoryManager
@@ -22,7 +20,7 @@ final class RepositoryManager
      * @psalm-var array<class-string<T>,T>
      * @phpstan-var array<class-string<T>,T>
      */
-    private array $drivers;
+    private array $drivers = [];
 
     /**
      * @param array<string,DriverConfig> $driverConfigs
@@ -37,7 +35,7 @@ final class RepositoryManager
     public function getDriverForSource(string $source): AbstractDriver
     {
         if (!array_key_exists($source, $this->driverConfigs)) {
-            throw InvalidRepositoryException::sourceDoesNotExist($source);
+            throw InvalidDriverException::sourceDoesNotExist($source);
         }
         $config = $this->driverConfigs[$source];
         $driverType = $config->getDriverType();
