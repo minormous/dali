@@ -1,6 +1,6 @@
 <?php
 
-namespace Minormous\Dali\Driver;
+namespace Minormous\Dali\Driver\Interfaces;
 
 use IteratorAggregate;
 
