@@ -5,7 +5,6 @@ namespace Minormous\Dali\Config;
 final class DriverConfig
 {
     public function __construct(
-        private string $driverClass = '',
         private string $sourceIdentifier = '',
         private string $driverType = '',
         private string $server = '',
@@ -17,11 +16,6 @@ final class DriverConfig
         private string $roleArn = '',
         private bool $debugLoggingEnabled = false,
     ) {
-    }
-
-    public function getDriverClass(): string
-    {
-        return $this->driverClass;
     }
 
     public function getRoleArn(): string
