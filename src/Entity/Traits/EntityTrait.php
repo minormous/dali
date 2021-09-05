@@ -2,7 +2,7 @@
 
 namespace Minormous\Dali\Entity\Traits;
 
-use Minormous\Dali\Entity\Exceptions\InvalidEntityException;
+use Minormous\Dali\Exceptions\InvalidEntityException;
 use Webmozart\Assert\Assert;
 
 trait EntityTrait

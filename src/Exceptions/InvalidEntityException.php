@@ -10,4 +10,9 @@ final class InvalidEntityException extends BaseException
     {
         return new self("Property <{$class}::{$key}> does not exist.");
     }
+
+    public static function noIdColumn(string $class)
+    {
+        return new self("Entity [{$class}] has no ID column defined. Unable to find entity.");
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace Minormous\Dali;
 
+use Auryn\Injector;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\AbstractDriver;
 use Minormous\Dali\Driver\ArrayDriver;
@@ -28,6 +29,7 @@ final class RepositoryManager
     public function __construct(
         private MetadataReader $metadataReader,
         private LoggerInterface $logger,
+        private Injector $container,
         private array $driverConfigs = [],
     ) {
     }
@@ -63,7 +65,7 @@ final class RepositoryManager
      * @param class-string<TObj> $class
      * @return AbstractRepository<TObj>
      */
-    public function make(string $class): ?AbstractRepository
+    public function make(string $class): AbstractRepository
     {
         $metadata = $this->metadataReader->read($class);
 
@@ -72,10 +74,11 @@ final class RepositoryManager
         $repository = new $repositoryClass(
             $this->getDriverForSource($metadata->getSource()),
             $metadata,
+            $this->container,
         );
 
         Assert::isInstanceOf($repository, AbstractRepository::class);
 
-        return null;
+        return $repository;
     }
 }

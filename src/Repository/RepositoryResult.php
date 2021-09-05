@@ -3,8 +3,7 @@
 namespace Minormous\Dali\Repository;
 
 use Generator;
-use IteratorAggregate;
-use Minormous\Dali\Driver\QueryResultInterface;
+use Minormous\Dali\Driver\Interfaces\QueryResultInterface;
 use Minormous\Dali\Entity\Interfaces\EntityInterface;
 
 final class RepositoryResult implements QueryResultInterface
