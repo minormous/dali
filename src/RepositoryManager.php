@@ -44,13 +44,19 @@ final class RepositoryManager
         if (!array_key_exists($driverType, $this->drivers)) {
             switch ($driverType) {
                 case 'array':
-                    $this->drivers[$driverType] = new ArrayDriver($config, $this->logger);
+                    $this->drivers[$driverType] = $this->container->make(ArrayDriver::class, [
+                        ':config' => $config,
+                        ':logger' => $this->logger,
+                    ]);
                     break;
                 default:
                     if (!class_exists($driverType)) {
                         throw InvalidDriverException::fromDriverType($driverType);
                     }
-                    $driver = new $driverType($config, $this->logger);
+                    $driver = $this->container->make($driverType, [
+                        ':config' => $config,
+                        ':logger' => $this->logger,
+                    ]);
                     Assert::isInstanceOf($driver, AbstractDriver::class);
                     $this->drivers[$driverType] = $driver;
                     break;
