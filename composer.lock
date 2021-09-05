@@ -498,12 +498,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/minormous/metabolize.git",
-                "reference": "d763fa148c0b08f46c146045a3bde55b616106f7"
+                "reference": "fda965d352e884ce7b9a472807382b498a669b0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/minormous/metabolize/zipball/d763fa148c0b08f46c146045a3bde55b616106f7",
-                "reference": "d763fa148c0b08f46c146045a3bde55b616106f7",
+                "url": "https://api.github.com/repos/minormous/metabolize/zipball/fda965d352e884ce7b9a472807382b498a669b0b",
+                "reference": "fda965d352e884ce7b9a472807382b498a669b0b",
                 "shasum": ""
             },
             "require": {
@@ -540,7 +540,7 @@
                 "source": "https://github.com/minormous/metabolize/tree/mclardy/dali",
                 "issues": "https://github.com/minormous/metabolize/issues"
             },
-            "time": "2021-08-22T22:07:06+00:00"
+            "time": "2021-09-05T21:26:18+00:00"
         },
         {
             "name": "psr/container",

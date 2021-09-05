@@ -7,6 +7,8 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\Interfaces\QueryResultInterface;
 use Minormous\Dali\Exceptions\InvalidDriverException;
+use function is_array;
+use function count;
 
 /**
  * An array driver designed for mocking database access in tests.
@@ -26,7 +28,10 @@ final class ArrayDriver extends AbstractDriver
 
     public function find(string $table, array $where, array $options = []): QueryResultInterface
     {
-        return new QueryResult(count($this->database[$table]), $this->iterator($table, $where, $options));
+        return new QueryResult(
+            count(iterator_to_array($this->iterator($table, $where, []))),
+            $this->iterator($table, $where, $options),
+        );
     }
 
     public function findOne(string $table, array $where): ?array
@@ -107,9 +112,9 @@ final class ArrayDriver extends AbstractDriver
         return $value;
     }
 
-    public function getIterator()
+    public function getIterator(?string $table = null)
     {
-        $table = array_keys($this->database)[0];
+        $table = $table ?? array_keys($this->database)[0];
 
         return $this->iterator($table, [], []);
     }
