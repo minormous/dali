@@ -2,9 +2,12 @@
 
 namespace Minormous\Dali\Entity\Traits;
 
-use Minormous\Dali\Exceptions\InvalidEntityException;
 use Webmozart\Assert\Assert;
+use Minormous\Dali\Exceptions\InvalidEntityException;
 
+/**
+ * @psalm-require-implements \Minormous\Dali\Entity\Interfaces\EntityInterface
+ */
 trait EntityTrait
 {
     use ToArray;

@@ -6,14 +6,14 @@ use IteratorAggregate;
 
 /**
  * @template TObj
- * @template-extends IteratorAggregate<int, TObj>
+ * @extends IteratorAggregate<int,TObj>
  */
 interface QueryResultInterface extends IteratorAggregate
 {
     public function count(): int;
 
     /**
-     * @return array<TObj>
+     * @return array<int,TObj>
      */
     public function all(): array;
 }

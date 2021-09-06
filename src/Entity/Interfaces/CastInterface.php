@@ -15,7 +15,7 @@ interface CastInterface
     public function toRaw($value);
 
     /**
-     * @param TRaw $value
+     * @param TRaw $raw
      * @return TType
      */
     public function toValue($raw);

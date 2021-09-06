@@ -15,7 +15,7 @@ class ArrayRepository extends AbstractRepository
         throw InvalidRepositoryException::notImplemented(__CLASS__, __METHOD__);
     }
 
-    public function deleteFromQueryBuilder(QueryBuilder $queryBuilder)
+    public function deleteFromQueryBuilder(QueryBuilder $queryBuilder): bool
     {
         throw InvalidRepositoryException::notImplemented(__CLASS__, __METHOD__);
     }
