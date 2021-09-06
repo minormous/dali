@@ -14,11 +14,9 @@ use Minormous\Dali\Exceptions\EntityDoesNotExistException;
 use Minormous\Dali\Exceptions\InvalidEntityException;
 use Minormous\Dali\Exceptions\InvalidRepositoryException;
 use ReflectionClass;
+use Traversable;
 use Webmozart\Assert\Assert;
 
-/**
- * @template TObj of EntityInterface
- */
 abstract class AbstractRepository
 {
     final public function __construct(
@@ -33,10 +31,6 @@ abstract class AbstractRepository
         return $this->driver;
     }
 
-    /**
-     * @param string|int $id
-     * @return TObj|null
-     */
     public function findById(string|int $id): ?EntityInterface
     {
         $idMetadata = $this->metadata->getIdColumn();
@@ -51,7 +45,8 @@ abstract class AbstractRepository
 
     /**
      * @param array<string,mixed> $where
-     * @return RepositoryResult
+     * @param array{offset?:int,sort?:array{string,string},limit?:int} $options
+     * @psalm-param array{offset?:positive-int,sort?:array{string,string},limit?:positive-int} $options
      */
     public function find(array $where, array $options = []): RepositoryResult
     {
@@ -62,7 +57,8 @@ abstract class AbstractRepository
     }
 
     /**
-     * @return TObj|null
+     * @param array<string,mixed|array{string,mixed}> $where
+     * @return EntityInterface|null
      */
     public function findOne(array $where): ?EntityInterface
     {
@@ -76,10 +72,6 @@ abstract class AbstractRepository
         return $this->buildEntity($value);
     }
 
-    /**
-     * @param TObj $update
-     * @return TObj|null
-     */
     public function insert(EntityInterface $entity): ?EntityInterface
     {
         Assert::isInstanceOf($entity, $this->metadata->getClass());
@@ -100,10 +92,6 @@ abstract class AbstractRepository
         return $result;
     }
 
-    /**
-     * @param TObj $entity
-     * @return TObj
-     */
     public function update(EntityInterface $entity): EntityInterface
     {
         Assert::isInstanceOf($entity, $this->metadata->getClass());
@@ -123,7 +111,10 @@ abstract class AbstractRepository
             return $entity;
         }
 
-        return $this->findById($id);
+        $entity = $this->findById($id);
+        Assert::notNull($entity);
+
+        return $entity;
     }
 
     public function delete(EntityInterface $entity): bool
@@ -136,6 +127,10 @@ abstract class AbstractRepository
         return $count > 0;
     }
 
+    /**
+     * @param array<string,mixed|array{string,mixed}> $where
+     * @return boolean
+     */
     public function deleteWhere(array $where): bool
     {
         if (empty($where)) {
@@ -149,7 +144,7 @@ abstract class AbstractRepository
     }
 
     abstract public function findFromQueryBuilder(QueryBuilder $queryBuilder): QueryResultInterface;
-    abstract public function deleteFromQueryBuilder(QueryBuilder $queryBuilder);
+    abstract public function deleteFromQueryBuilder(QueryBuilder $queryBuilder): bool;
 
     protected function getEntityId(EntityInterface $entity): string|int
     {
@@ -159,6 +154,7 @@ abstract class AbstractRepository
             throw InvalidEntityException::noIdColumn($this->metadata->getClass());
         }
 
+        /** @var string|int|null $id */
         $id = $entity->toArray()[$idColumn->getProperty()] ?? null;
 
         if ($id === null) {
@@ -168,6 +164,9 @@ abstract class AbstractRepository
         return $id;
     }
 
+    /**
+     * @return array<string,scalar|null|array{string,scalar|null}>
+     */
     protected function entityToWhere(EntityInterface $entity): array
     {
         $idMetadata = $this->metadata->getIdColumn();
@@ -180,6 +179,13 @@ abstract class AbstractRepository
         return [$key => $value];
     }
 
+    /**
+     * @template T of non-empty-array<string,mixed>|null
+     * @param array<string,mixed>|null $values
+     * @psalm-param T $values
+     * @return EntityInterface|null
+     * @psalm-return (T is null ? null : EntityInterface)
+     */
     protected function buildEntity(?array $values): ?EntityInterface
     {
         if ($values === null) {
@@ -188,41 +194,45 @@ abstract class AbstractRepository
 
         foreach ($values as $key => &$value) {
             $columnMetadata = $this->metadata->getColumn($key);
-            if ($columnMetadata->getCastClass() instanceof CastInterface) {
-                /** @var CastInterface $cast */
+            if (class_exists($columnMetadata->getCastClass())) {
                 $cast = $this->container->make($columnMetadata->getCastClass());
+                if (!($cast instanceof CastInterface)) {
+                    continue;
+                }
                 $value = $cast->toValue($value);
             }
         }
 
+        /** @var class-string<EntityInterface> $class */
         $class = $this->metadata->getClass();
 
         $entity = new $class($values);
 
+        /** @psalm-suppress RedundantConditionGivenDocblockType */
         Assert::isInstanceOf($entity, EntityInterface::class);
 
         return $entity;
     }
 
-    protected function convertValueForDriver(string $key, mixed $value): mixed
+    /**
+     * @param string $key
+     * @param mixed|array{0:string,1?:mixed} $value
+     * @return array{0:string,1:scalar|null|array{0:string,1:null|scalar}}
+     */
+    protected function convertValueForDriver(string $key, mixed $value): array
     {
         $operator = null;
         $columnMetadata = $this->metadata->getColumn($key);
         if (\is_array($value)) {
-            if (\count($value) > 1) {
-                [$operator, $value] = $value;
-            } else {
-                $operator = [$value];
-                $value = null;
-            }
+            /** @var string $operator */
+            $operator = $value[0];
+            $value = $value[1] ?? null;
         }
-        if (
-            class_exists($columnMetadata->getCastClass()) &&
-            $columnMetadata->getCastClass() instanceof CastInterface
-        ) {
-            /** @var CastInterface $cast */
+        if (class_exists($columnMetadata->getCastClass())) {
             $cast = $this->container->make($columnMetadata->getCastClass());
-            $value = $cast->toValue($value);
+            if ($cast instanceof CastInterface) {
+                $value = $cast->toValue($value);
+            }
         }
 
         $value = $this->driver->convertValueForDriver($columnMetadata->getType(), $value);
@@ -235,8 +245,12 @@ abstract class AbstractRepository
         return [$key, $value];
     }
 
+    /**
+     * @psalm-return non-empty-array<string,mixed>
+     */
     protected function convertEntityForDriver(EntityInterface $entity): array
     {
+        /** @psalm-var non-empty-array<string,mixed> $arr */
         $arr = [];
         foreach ($entity->toArray() as $key => $value) {
             [$key, $value] = $this->convertValueForDriver($key, $value);
@@ -246,6 +260,10 @@ abstract class AbstractRepository
         return $arr;
     }
 
+    /**
+     * @param array<string,mixed|array{string,mixed}> $where
+     * @return array<string,scalar|null|array{0:string,1?:scalar|null}>
+     */
     protected function convertWhereForDriver(array $where): array
     {
         $columnWhere = [];
@@ -257,11 +275,16 @@ abstract class AbstractRepository
         return $columnWhere;
     }
 
-    protected function buildGenerator(Generator $iterable): Generator
+    /**
+     * @param \Traversable<int,array<string,mixed>> $iterable
+     * @psalm-param Traversable<int,non-empty-array<string,mixed>> $iterable
+     * @return Generator<int,EntityInterface,mixed,void>
+     */
+    protected function buildGenerator(Traversable $iterable): Generator
     {
-        while ($values = $iterable->current()) {
-            yield $this->buildEntity($values);
-            $iterable->next();
+        foreach ($iterable as $key => $values) {
+            $entity = $this->buildEntity($values);
+            yield $key => $entity;
         }
     }
 }

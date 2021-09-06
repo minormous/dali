@@ -12,4 +12,8 @@
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
+    <issueHandlers>
+        <!-- Mixed types are in lots of places, because we cannot guarantee what type may be passed around -->
+        <MixedAssignment errorLevel="suppress" />
+    </issueHandlers>
 </psalm>

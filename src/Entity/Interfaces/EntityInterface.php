@@ -7,6 +7,9 @@ namespace Minormous\Dali\Entity\Interfaces;
  */
 interface EntityInterface
 {
+    /**
+     * @return array<string,mixed>
+     */
     public function toArray(): array;
     public function with(mixed ...$values): static;
 }

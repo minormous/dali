@@ -5,9 +5,17 @@ namespace Minormous\Dali\Repository;
 use Generator;
 use Minormous\Dali\Driver\Interfaces\QueryResultInterface;
 use Minormous\Dali\Entity\Interfaces\EntityInterface;
+use Webmozart\Assert\Assert;
 
+/**
+ * @implements QueryResultInterface<EntityInterface>
+ */
 final class RepositoryResult implements QueryResultInterface
 {
+    /**
+     * @param int $count
+     * @param \Generator<int,EntityInterface,mixed,void> $iterator
+     */
     public function __construct(
         private int $count,
         private Generator $iterator,
@@ -19,23 +27,34 @@ final class RepositoryResult implements QueryResultInterface
         return $this->count;
     }
 
+    /**
+     * @return array<int,\Minormous\Dali\Entity\Interfaces\EntityInterface>
+     */
     public function all(): array
     {
-        return iterator_to_array($this->iterator);
+        $result = iterator_to_array($this->iterator);
+
+        Assert::allIsInstanceOf($result, EntityInterface::class);
+        Assert::isList($result);
+
+        return $result;
     }
 
-    public function getIterator()
+    /**
+     * @return \Traversable<int,EntityInterface>&Generator<int,EntityInterface,null,EntityInterface>
+     */
+    public function getIterator(): Generator
     {
         return $this->iterator;
     }
 
-    public function first(): EntityInterface
+    public function first(): ?EntityInterface
     {
-        return $this->iterator->current();
+        return $this->all()[0] ?? null;
     }
 
-    public function last(): EntityInterface
+    public function last(): ?EntityInterface
     {
-        return $this->all()[$this->count - 1];
+        return $this->all()[$this->count - 1] ?? null;
     }
 }

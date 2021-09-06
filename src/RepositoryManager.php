@@ -15,12 +15,7 @@ use Webmozart\Assert\Assert;
 
 final class RepositoryManager
 {
-    /**
-     * @template T of AbstractDriver
-     * @var array<class-string,AbstractDriver>
-     * @psalm-var array<class-string<T>,T>
-     * @phpstan-var array<class-string<T>,T>
-     */
+    /** @var array<string,AbstractDriver> $drivers */
     private array $drivers = [];
 
     /**
@@ -44,15 +39,18 @@ final class RepositoryManager
         if (!array_key_exists($driverType, $this->drivers)) {
             switch ($driverType) {
                 case 'array':
-                    $this->drivers[$driverType] = $this->container->make(ArrayDriver::class, [
+                    /** @var \Minormous\Dali\Driver\ArrayDriver $driver */
+                    $driver = $this->container->make(ArrayDriver::class, [
                         ':config' => $config,
                         ':logger' => $this->logger,
                     ]);
+                    $this->drivers[$driverType] = $driver;
                     break;
                 default:
                     if (!class_exists($driverType)) {
                         throw InvalidDriverException::fromDriverType($driverType);
                     }
+                    /** @var object $driver */
                     $driver = $this->container->make($driverType, [
                         ':config' => $config,
                         ':logger' => $this->logger,
@@ -67,9 +65,8 @@ final class RepositoryManager
     }
 
     /**
-     * @template TObj of EntityInterface
-     * @param class-string<TObj> $class
-     * @return AbstractRepository<TObj>
+     * @param class-string<\Minormous\Dali\Entity\Interfaces\EntityInterface> $class
+     * @return AbstractRepository
      */
     public function make(string $class): AbstractRepository
     {

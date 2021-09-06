@@ -15,13 +15,14 @@ use function count;
  */
 final class ArrayDriver extends AbstractDriver
 {
+    /** @psalm-var array<string,array<int,non-empty-array<string,mixed>>> $database */
     private array $database = [
         '__example__' => [
             ['id' => 1, 'name' => 'row1'],
         ],
     ];
 
-    protected function setup(DriverConfig $driverConfig)
+    protected function setup(DriverConfig $driverConfig): void
     {
         // Unset
     }
@@ -45,7 +46,7 @@ final class ArrayDriver extends AbstractDriver
         return null;
     }
 
-    public function insert(string $table, array $data): int
+    public function insert(string $table, array $data): string|int
     {
         foreach ($this->database[$table] as $row) {
             if ($row['id'] === ($data['id'] ?? '__UNSET__')) {
@@ -60,7 +61,10 @@ final class ArrayDriver extends AbstractDriver
 
         $this->database[$table][] = $data;
 
-        return $data['id'];
+        /** @var string|int */
+        $id = $data['id'];
+
+        return $id;
     }
 
     public function update(string $table, array $where, array $data): int
@@ -92,23 +96,26 @@ final class ArrayDriver extends AbstractDriver
         return $count;
     }
 
-    public function getConnection()
-    {
-        throw InvalidDriverException::notImplemented(__METHOD__, 'Connection doesn\'t exist with array driver.');
-    }
-
+    /**
+     * @return never
+     */
     public function findFromQueryBuilder(QueryBuilder $queryBuilder): QueryResultInterface
     {
         throw InvalidDriverException::notImplemented(__METHOD__, 'Query Builder doesn\'t work with array driver.');
     }
 
-    public function deleteFromQueryBuilder(QueryBuilder $queryBuilder)
+    /**
+     * @return never
+     */
+    public function deleteFromQueryBuilder(QueryBuilder $queryBuilder): int
     {
         throw InvalidDriverException::notImplemented(__METHOD__, 'Query Builder doesn\'t work with array driver.');
     }
 
+    /** @psalm-suppress MixedInferredReturnType */
     public function convertValueForDriver(string $type, mixed $value): mixed
     {
+        /** @psalm-suppress MixedReturnStatement */
         return $value;
     }
 
@@ -121,6 +128,7 @@ final class ArrayDriver extends AbstractDriver
 
     /**
      * @param array<string,array<int,array<string,mixed>>> $database An array of tables, containing rows.
+     * @psalm-param array<string,array<int,non-empty-array<string,mixed>>> $database
      */
     public function setData(array $database): self
     {
@@ -131,6 +139,7 @@ final class ArrayDriver extends AbstractDriver
 
     /**
      * @param array<int,array<string,mixed>> $rows
+     * @psalm-param array<int,non-empty-array<string,mixed>> $rows
      */
     public function addTable(string $table, array $rows = []): self
     {
@@ -139,17 +148,25 @@ final class ArrayDriver extends AbstractDriver
         return $this;
     }
 
+    /**
+     * @param array<string,array{0:string,1?:mixed}|mixed> $where
+     * @param array{offset?:int,sort?:array{0:string,1?:string},limit?:int} $options
+     * @psalm-param array{offset?:positive-int,sort?:array{0:string,1?:'ASC'|'DESC'},limit?:positive-int} $options
+     * @return Generator<int,non-empty-array<string,mixed>,mixed,void>
+     */
     private function iterator(string $table, array $where, array $options): Generator
     {
         $yieldCount = 0;
+        /** @var array<string,array<string,mixed>> $data */
         $data = $this->database[$table];
         if (array_key_exists('offset', $options) && $options['offset']) {
+            /** @psalm-suppress RedundantCastGivenDocblockType */
             $data = array_slice($data, (int) $options['offset']);
         }
         if (array_key_exists('sort', $options)) {
             $sort = $options['sort'];
-            usort($data, function ($a, $b) use ($sort) {
-                $ascending = (strtoupper($sort[1]) ?? 'ASC') === 'ASC';
+            usort($data, function (array $a, array $b) use ($sort) {
+                $ascending = strtoupper($sort[1] ?? 'ASC') === 'ASC';
                 if ($ascending) {
                     return $a[$sort[0]] <=> $b[$sort[0]];
                 } else {
@@ -157,6 +174,7 @@ final class ArrayDriver extends AbstractDriver
                 }
             });
         }
+        /** @psalm-var non-empty-array<string,mixed> $row */
         foreach ($data as $row) {
             if (array_key_exists('limit', $options) && $options['limit'] && $yieldCount >= $options['limit']) {
                 break;
@@ -168,6 +186,10 @@ final class ArrayDriver extends AbstractDriver
         }
     }
 
+    /**
+     * @param array<string,mixed> $row
+     * @param array<string,array{0:string,1?:mixed}|mixed> $where
+     */
     private function checkIfFound(array $row, array $where): bool
     {
         $foundCount = 0;
@@ -180,27 +202,28 @@ final class ArrayDriver extends AbstractDriver
         return $foundCount === count($where);
     }
 
-    private function compare($rowValue, $value): bool
+    /**
+     * @psalm-param array{0:string,1?:mixed}|mixed $value
+     */
+    private function compare(mixed $rowValue, mixed $value): bool
     {
         $operator = '=';
         if (is_array($value)) {
-            if (count($value) > 1) {
-                [$operator, $value] = $value;
-            } else {
-                [$operator] = $value;
-            }
+            $operator = $value[0];
+            $value = $value[1] ?? null;
         }
 
         return match ($operator) {
+            default => throw InvalidDriverException::notImplemented(__METHOD__, "Operator [{$operator}] not valid!"),
             '=', '==', '===' => $rowValue === $value,
             '<>', '!=' => $rowValue !== $value,
             '>' => $rowValue > $value,
             '<' => $rowValue < $value,
             '>=' => $rowValue >= $value,
             '<=' => $rowValue <= $value,
-            'LIKE' => preg_match('/' . str_replace('%', '.*', $value) . '/i', $rowValue),
+            'LIKE' => (bool) preg_match('/' . str_replace('%', '.*', (string) $value) . '/i', (string) $rowValue),
             'NOT LIKE' => ! $this->compare($rowValue, ['LIKE', $value]),
-            'SIMILAR', '~=' => preg_match("/{$value}/i", $rowValue),
+            'SIMILAR', '~=' => (bool) preg_match('/' . (string) $value . '/i', (string) $rowValue),
             'NOT NULL' => isset($rowValue),
         };
     }

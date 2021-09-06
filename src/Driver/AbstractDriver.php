@@ -21,25 +21,50 @@ abstract class AbstractDriver implements IteratorAggregate
         $this->setup($driverConfig);
     }
 
-    abstract protected function setup(DriverConfig $driverConfig);
+    abstract protected function setup(DriverConfig $driverConfig): void;
 
-    public function logQueries()
+    public function logQueries(): void
     {
         // extend where appropriate
     }
 
+    /**
+     * @param array<string,mixed|array{string,mixed}> $where
+     * @param array{offset?:int,sort?:array{string,string},limit?:int} $options
+     * @psalm-param array{offset?:positive-int,sort?:array{string,string},limit?:positive-int} $options
+     * @return QueryResultInterface<array<string,mixed>>
+     * @psalm-return QueryResultInterface<non-empty-array<string,mixed>>
+     */
     abstract public function find(string $table, array $where, array $options = []): QueryResultInterface;
+    /**
+     * @param array<string,scalar|null|array{0:string,1?:null|scalar}>  $where
+     * @psalm-return null|non-empty-array<string,mixed>
+     */
     abstract public function findOne(string $table, array $where): ?array;
-    abstract public function insert(string $table, array $data): int;
+    /**
+     * @param array<string,mixed> $data
+     * @psalm-param non-empty-array<string,mixed> $data
+     */
+    abstract public function insert(string $table, array $data): string|int;
 
+    /**
+     * @param array<string,scalar|null|array{0:string,1?:null|scalar}> $where
+     * @param array<string,mixed> $data
+     * @psalm-param non-empty-array<string,mixed> $data
+     */
     abstract public function update(string $table, array $where, array $data): int;
 
+    /**
+     * @param array<string,scalar|null|array{0:string,1?:null|scalar}> $where
+     */
     abstract public function delete(string $table, array $where): int;
 
-    abstract public function getConnection();
-
     abstract public function findFromQueryBuilder(QueryBuilder $queryBuilder): QueryResultInterface;
-    abstract public function deleteFromQueryBuilder(QueryBuilder $queryBuilder);
+    abstract public function deleteFromQueryBuilder(QueryBuilder $queryBuilder): int;
 
+    /**
+     * @param mixed $value
+     * @return scalar|null
+     */
     abstract public function convertValueForDriver(string $type, mixed $value): mixed;
 }
