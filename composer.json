@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "doctrine/dbal": "^3.1",
-        "minormous/metabolize": "dev-mclardy/dali",
+        "minormous/metabolize": "dev-main",
         "psr/log": "^1.1",
         "webmozart/assert": "^1.10",
         "davedevelopment/phpmig": "^1.7",
