@@ -13,7 +13,6 @@ use Minormous\Dali\Entity\Interfaces\EntityInterface;
 use Minormous\Dali\Exceptions\EntityDoesNotExistException;
 use Minormous\Dali\Exceptions\InvalidEntityException;
 use Minormous\Dali\Exceptions\InvalidRepositoryException;
-use ReflectionClass;
 use Traversable;
 use Webmozart\Assert\Assert;
 
@@ -79,9 +78,7 @@ abstract class AbstractRepository
         $id = $this->driver->insert($this->metadata->getTable(), $this->convertEntityForDriver($entity));
 
         $result = null;
-        if ($id === 0) {
-            $result = null;
-        } elseif ($id) {
+        if ($id !== 0) {
             $result = $this->findById($id);
         }
 
@@ -165,7 +162,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * @return array<string,scalar|null|array{string,scalar|null}>
+     * @return array{string,scalar|null|array{string,scalar|null}}
      */
     protected function entityToWhere(EntityInterface $entity): array
     {
@@ -276,7 +273,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * @param \Traversable<int,array<string,mixed>> $iterable
+     * @param Traversable<int,array<string,mixed>> $iterable
      * @psalm-param Traversable<int,non-empty-array<string,mixed>> $iterable
      * @return Generator<int,EntityInterface,mixed,void>
      */
