@@ -162,7 +162,8 @@ abstract class AbstractRepository
     }
 
     /**
-     * @return array{string,scalar|null|array{string,scalar|null}}
+     * @return array<string,scalar|null|array{string,scalar|null}>
+     * @psalm-return array<string,scalar|null|array{string,scalar|null}>
      */
     protected function entityToWhere(EntityInterface $entity): array
     {
