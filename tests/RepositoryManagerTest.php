@@ -5,6 +5,7 @@ namespace Tests\Dali;
 use Auryn\Injector;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\ArrayDriver;
+use Minormous\Dali\Enums\DriverType;
 use Minormous\Dali\RepositoryManager;
 use Minormous\Metabolize\Dali\MetadataReader;
 use PHPUnit\Framework\TestCase;
@@ -17,13 +18,13 @@ class RepositoryManagerTest extends TestCase
     /**
      * @dataProvider driverDataProvider
      */
-    public function testGetDriverForSource(string $type)
+    public function testGetDriverForSource(DriverType $type, string $driverClass = '')
     {
         $manager = new RepositoryManager(
             new MetadataReader([]),
             new TestLogger(),
             new Injector(),
-            ['test' => new DriverConfig('array', $type)],
+            ['test' => new DriverConfig('test', $type, driverClass: $driverClass)],
         );
 
         $driver = $manager->getDriverForSource('test');
@@ -37,8 +38,8 @@ class RepositoryManagerTest extends TestCase
     public function driverDataProvider(): array
     {
         return [
-            'array' => ['array'],
-            'array class' => [ArrayDriver::class],
+            'array' => [DriverType::ARRAY],
+            'array class' => [DriverType::CUSTOM, ArrayDriver::class],
         ];
     }
 
@@ -48,13 +49,13 @@ class RepositoryManagerTest extends TestCase
             new MetadataReader([]),
             new TestLogger(),
             new Injector(),
-            ['test' => new DriverConfig('array', 'array')],
+            ['test' => new DriverConfig('array', DriverType::ARRAY)],
         );
 
         $repository = $manager->make(Entity::class);
         $this->assertInstanceOf(ArrayRepository::class, $repository);
 
-        /** @var \Minormous\Dali\Driver\ArrayDriver $driver */
+        /** @var ArrayDriver $driver */
         $driver = $repository->getDriver();
         $driver->addTable('test', [
             ['id' => 1, 'something' => 'test'],

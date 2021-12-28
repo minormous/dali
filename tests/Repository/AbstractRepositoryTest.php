@@ -3,10 +3,12 @@
 namespace Tests\Dali\Repository;
 
 use Auryn\Injector;
+use Minormous\Dali\Driver\ArrayDriver;
+use Minormous\Dali\Enums\DriverType;
+use Minormous\Dali\Repository\RepositoryResult;
 use Psr\Log\Test\TestLogger;
 use PHPUnit\Framework\TestCase;
 use Minormous\Dali\RepositoryManager;
-use Tests\Dali\Assets\ArrayRepository;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Repository\AbstractRepository;
 use Minormous\Metabolize\Dali\MetadataReader;
@@ -20,10 +22,10 @@ class AbstractRepositoryTest extends TestCase
             new MetadataReader(),
             new TestLogger(),
             new Injector(),
-            ['test' => new DriverConfig('array', 'array')],
+            ['test' => new DriverConfig('array', DriverType::ARRAY)],
         );
         $repo = $manager->make(Entity::class);
-        /** @var \Minormous\Dali\Driver\ArrayDriver $driver */
+        /** @var ArrayDriver $driver */
         $driver = $repo->getDriver();
         $driver->addTable('test', [
             ['id' => 1, 'something' => 'test1'],
@@ -63,7 +65,7 @@ class AbstractRepositoryTest extends TestCase
     public function testFind()
     {
         $repo = $this->getRepo();
-        /** @var \Minormous\Dali\Repository\RepositoryResult<Entity> */
+        /** @var RepositoryResult<Entity> */
         $result = $repo->find(['id' => ['>', 1]]);
         $this->assertEquals(3, $result->count());
         foreach ($result as $value) {
