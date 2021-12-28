@@ -2,25 +2,17 @@
 
 namespace Minormous\Dali\Config;
 
+use Minormous\Dali\Enums\DriverType;
+
 final class DriverConfig
 {
     public function __construct(
-        private string $sourceIdentifier = '',
-        private string $driverType = '',
-        private string $server = '',
-        private int $port = 0,
-        private string $database = '',
-        private string $username = '',
-        private string $password = '',
-        private string $region = '',
-        private string $roleArn = '',
+        private string $sourceIdentifier,
+        private DriverType $driverType = DriverType::CUSTOM,
+        private array $config = [],
         private bool $debugLoggingEnabled = false,
+        private string $driverClass = '',
     ) {
-    }
-
-    public function getRoleArn(): string
-    {
-        return $this->roleArn;
     }
 
     public function getSourceIdentifier(): string
@@ -28,43 +20,23 @@ final class DriverConfig
         return $this->sourceIdentifier;
     }
 
-    public function getDriverType(): string
+    public function getDriverType(): DriverType
     {
         return $this->driverType;
-    }
-
-    public function getServer(): string
-    {
-        return $this->server;
-    }
-
-    public function getPort(): int
-    {
-        return $this->port;
-    }
-
-    public function getDatabase(): string
-    {
-        return $this->database;
-    }
-
-    public function getUsername(): string
-    {
-        return $this->username;
-    }
-
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function getRegion(): string
-    {
-        return $this->region;
     }
 
     public function isDebugLoggingEnabled(): bool
     {
         return $this->debugLoggingEnabled;
+    }
+
+    public function getDriverClass(): string
+    {
+        return $this->driverClass;
+    }
+
+    public function getConfig(): array
+    {
+        return $this->config;
     }
 }

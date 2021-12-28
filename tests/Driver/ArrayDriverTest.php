@@ -4,6 +4,7 @@ namespace Tests\Dali\Driver;
 
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\ArrayDriver;
+use Minormous\Dali\Enums\DriverType;
 use Minormous\Dali\Exceptions\InvalidDriverException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\Test\TestLogger;
@@ -15,7 +16,7 @@ class ArrayDriverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $config = new DriverConfig();
+        $config = new DriverConfig('test', DriverType::ARRAY);
         $logger = new TestLogger();
         $driver = new ArrayDriver($config, $logger);
         $driver->addTable('test', [
