@@ -159,6 +159,7 @@ final class ArrayDriver extends AbstractDriver
         $yieldCount = 0;
         /** @var array<string,array<string,mixed>> $data */
         $data = $this->database[$table];
+        /** @psalm-suppress RedundantConditionGivenDocblockType */
         if (array_key_exists('offset', $options) && $options['offset']) {
             /** @psalm-suppress RedundantCastGivenDocblockType */
             $data = array_slice($data, (int) $options['offset']);
@@ -176,10 +177,11 @@ final class ArrayDriver extends AbstractDriver
         }
         /** @psalm-var non-empty-array<string,mixed> $row */
         foreach ($data as $row) {
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
             if (array_key_exists('limit', $options) && $options['limit'] && $yieldCount >= $options['limit']) {
                 break;
             }
-            if (count($where) === 0 || $this->checkIfFound($row, $where)) {
+            if (empty($where) || $this->checkIfFound($row, $where)) {
                 $yieldCount++;
                 yield $row;
             }
