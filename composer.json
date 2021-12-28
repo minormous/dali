@@ -3,6 +3,7 @@
     "description": "The Database Abstraction LIbrary for Minormous Framework",
     "type": "library",
     "require": {
+        "php": "^8.1.0",
         "doctrine/dbal": "^3.1",
         "minormous/metabolize": "dev-main",
         "psr/log": "^1.1",
@@ -37,5 +38,10 @@
             "type": "vcs",
             "url":  "git@github.com:minormous/metabolize.git"
         }
-    ]
+    ],
+    "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    }
 }
