@@ -6,9 +6,9 @@ use Auryn\Injector;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\AbstractDriver;
 use Minormous\Dali\Driver\ArrayDriver;
+use Minormous\Dali\Entity\Interfaces\EntityInterface;
 use Minormous\Metabolize\Dali\MetadataReader;
 use Minormous\Dali\Repository\AbstractRepository;
-use Minormous\Dali\Entity\Interfaces\EntityInterface;
 use Minormous\Dali\Exceptions\InvalidDriverException;
 use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
@@ -65,7 +65,7 @@ final class RepositoryManager
     }
 
     /**
-     * @param class-string<\Minormous\Dali\Entity\Interfaces\EntityInterface> $class
+     * @param class-string<EntityInterface> $class
      * @return AbstractRepository
      */
     public function make(string $class): AbstractRepository

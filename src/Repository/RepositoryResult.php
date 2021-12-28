@@ -14,7 +14,7 @@ final class RepositoryResult implements QueryResultInterface
 {
     /**
      * @param int $count
-     * @param \Generator<int,EntityInterface,mixed,void> $iterator
+     * @param Generator<int,EntityInterface,mixed,void> $iterator
      */
     public function __construct(
         private int $count,
@@ -28,7 +28,7 @@ final class RepositoryResult implements QueryResultInterface
     }
 
     /**
-     * @return array<int,\Minormous\Dali\Entity\Interfaces\EntityInterface>
+     * @return array<int,EntityInterface>
      */
     public function all(): array
     {
