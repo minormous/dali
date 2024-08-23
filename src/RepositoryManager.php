@@ -5,8 +5,8 @@ namespace Minormous\Dali;
 use Auryn\Injector;
 use Minormous\Dali\Config\DriverConfig;
 use Minormous\Dali\Driver\AbstractDriver;
-use Minormous\Dali\Driver\ArrayDriver;
 use Minormous\Dali\Entity\Interfaces\EntityInterface;
+use Minormous\Dali\Enums\DriverType;
 use Minormous\Metabolize\Dali\MetadataReader;
 use Minormous\Dali\Repository\AbstractRepository;
 use Minormous\Dali\Exceptions\InvalidDriverException;
@@ -36,32 +36,24 @@ final class RepositoryManager
         }
         $config = $this->driverConfigs[$source];
         $driverType = $config->getDriverType();
-        if (!array_key_exists($driverType, $this->drivers)) {
-            switch ($driverType) {
-                case 'array':
-                    /** @var \Minormous\Dali\Driver\ArrayDriver $driver */
-                    $driver = $this->container->make(ArrayDriver::class, [
-                        ':config' => $config,
-                        ':logger' => $this->logger,
-                    ]);
-                    $this->drivers[$driverType] = $driver;
-                    break;
-                default:
-                    if (!class_exists($driverType)) {
-                        throw InvalidDriverException::fromDriverType($driverType);
-                    }
-                    /** @var object $driver */
-                    $driver = $this->container->make($driverType, [
-                        ':config' => $config,
-                        ':logger' => $this->logger,
-                    ]);
-                    Assert::isInstanceOf($driver, AbstractDriver::class);
-                    $this->drivers[$driverType] = $driver;
-                    break;
-            }
+
+        if (!array_key_exists($source, $this->drivers)) {
+            $driverClass = $driverType === DriverType::CUSTOM ?
+                $config->getDriverClass() :
+                $driverType->driver();
+
+            $driver = $this->container->make(
+                $driverClass,
+                [
+                    ':driverConfig' => $config,
+                    ':logger' => $this->logger,
+                ]
+            );
+
+            $this->drivers[$source] = $driver;
         }
 
-        return $this->drivers[$driverType];
+        return $this->drivers[$source];
     }
 
     /**
